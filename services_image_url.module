@@ -51,10 +51,50 @@ namespace Drupal\services_image_url {
     return add_image_urls(\_node_resource_retrieve($nid));
   }
 
-/**
- * Adds image style urls to node
- * @param $entity the entity to check for image file fields on
- */
+  /**
+   * Wrapper for services_views callback for retrieving views resources.
+   *
+   * @param $view_name
+   *   String. The views name.
+   * @param $display_id
+   *   String (optional). The views display name.
+   * @param $args
+   *   Array (optional). A list of arguments to pass to the view.
+   * @param $offset
+   *   Integer (optional). An offset integer for paging.
+   * @param $limit
+   *   Integer (optional). A limit integer for paging.
+   * @param $return_type
+   *   String (optional). Whether to return the raw data results (FALSE), the entire views object ('view') or themed results ('theme').
+   * @param $filters
+   *   Array (optional). A list of exposed filters to pass to the view.
+   *
+   * @return
+   *  Array. The views return.
+   */
+  function services_views_retrieve($view_name, $display_id = 'default', $args = array(), $offset = 0, $limit = -1, $return_type = FALSE, $filters = array()) {
+    return add_views_image_urls(\services_views_retrieve($view_name, $display_id, $args, $offset, $limit, $return_type, $filters));
+  }
+
+  /**
+   * Add image urls to node/entity view
+   * @param $view the node/entity view
+   */
+  function add_views_image_urls($view) {
+    // Looking for entity view
+    if ( is_array($view) && ! empty($view) && is_object($view[0]) ) {
+      foreach ( $view as $entity ) {
+        add_image_urls($entity);
+      }
+    }
+
+    return $view;
+  }
+
+  /**
+   * Adds image style urls to node
+   * @param $entity the entity to check for image file fields on
+   */
   function add_image_urls($entity) {
 
     // find image fields in type
@@ -75,4 +115,5 @@ namespace Drupal\services_image_url {
 
     return $entity;
   }
+
 }
