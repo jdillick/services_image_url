@@ -1,0 +1,78 @@
+<?php
+/**
+ * @file services_image_url.module
+ * Provides usable external image urls in services resources
+ */
+
+namespace {
+  /**
+   * Implements hook_services_resources_alter().
+   */
+  function services_image_url_services_resources_alter(&$resources, &$endpoint) {
+    foreach ( $resources as $type  => $resource ) {
+
+      $callback = isset($resource['operations']['retrieve']['callback'])
+        ? $resource['operations']['retrieve']['callback'] : false;
+      $wrapper = '\\Drupal\\services_image_url\\' . $callback;
+
+      // Replace callback with services_image_url wrapper
+      if ( $callback && is_callable($wrapper) ) {
+        $resources[$type]['operations']['retrieve']['callback'] = $wrapper;
+      }
+    }
+  }
+}
+
+namespace Drupal\services_image_url {
+  /**
+   * Wrapper for callback to uuid_services entity resource 'retrieve' method.
+   *
+   * @see entity_uuid_load()
+   */
+  function _uuid_services_entity_retrieve($entity_type, $uuid) {
+    return add_image_urls(\_uuid_services_entity_retrieve($entity_type, $uuid));
+  }
+
+  /**
+   * Wrapper for services \_node_resource_retrieve()
+   * Returns the results of a node_load() for the specified node.
+   *
+   * This returned node may optionally take content_permissions settings into
+   * account, based on a configuration setting.
+   *
+   * @param $nid
+   *   NID of the node we want to return.
+   * @return
+   *   Node object or FALSE if not found.
+   *
+   * @see node_load()
+   */
+  function _node_resource_retrieve($nid) {
+    return add_image_urls(\_node_resource_retrieve($nid));
+  }
+
+/**
+ * Adds image style urls to node
+ * @param $entity the entity to check for image file fields on
+ */
+  function add_image_urls($entity) {
+
+    // find image fields in type
+    foreach(field_read_instances(array('bundle' => $entity->type)) as $instance) {
+      if ( ($field = field_read_field($instance['field_name'])) && $field['type'] == 'image' ){
+
+        // add full and image style urls to each file field
+        foreach ($entity->{$instance['field_name']} as $lang => &$list ) {
+          foreach ( $list as $index => &$image ) {
+            $image['full'] = file_create_url($image['uri']);
+            foreach ( image_styles() as $style => $meta ) {
+              $image[$style] = image_style_url($style, $image['uri']);
+            }
+          }
+        }
+      }
+    }
+
+    return $entity;
+  }
+}

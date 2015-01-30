@@ -1,0 +1,24 @@
+<?php
+/**
+ * @file services_image_url.install
+ */
+
+/**
+ * Implements hook_install().
+ */
+function services_image_url_install() {
+  db_update('system')
+    ->fields(array('weight' => 99))
+    ->condition('name', 'services_image_url', '=')
+    ->execute();
+}
+
+/**
+ * Ensure Module load weight is higher than uuid_services module
+ */
+function services_image_url_update_1($node) {
+  db_update('system')
+    ->fields(array('weight' => 99))
+    ->condition('name', 'services_image_url', '=')
+    ->execute();
+}

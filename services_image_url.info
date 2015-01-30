@@ -1,0 +1,7 @@
+name = Services Image Url
+description = Provide usable external image urls to services resources
+core = 7.x
+package = Services
+php = 5.3
+
+dependencies[] = services
